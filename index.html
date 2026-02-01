@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Hotel Management (Basic)</title>
+		<link rel="stylesheet" href="./style.css" />
+	</head>
+	<body>
+		<header class="topbar">
+			<div class="brand">
+				<div class="logo" aria-hidden="true">HM</div>
+				<div>
+					<div class="brand__title">Hotel Management</div>
+					<div class="brand__subtitle">Basic single-page system (local only)</div>
+				</div>
+			</div>
+
+			<div class="topbar__actions">
+				<div class="segmented" role="tablist" aria-label="Sections">
+					<button class="segmented__btn is-active" type="button" data-view="dashboard" role="tab">Dashboard</button>
+					<button class="segmented__btn" type="button" data-view="rooms" role="tab">Rooms</button>
+					<button class="segmented__btn" type="button" data-view="guests" role="tab">Guests</button>
+					<button class="segmented__btn" type="button" data-view="bookings" role="tab">Bookings</button>
+				</div>
+
+				<button class="btn btn--ghost" type="button" id="btnExport">Export</button>
+				<button class="btn btn--danger" type="button" id="btnReset">Reset</button>
+			</div>
+		</header>
+
+		<main class="container">
+			<section class="view is-active" id="view-dashboard" data-view="dashboard" aria-label="Dashboard">
+				<div class="grid grid--kpis">
+					<div class="card kpi">
+						<div class="kpi__label">Total Rooms</div>
+						<div class="kpi__value" id="kpiTotalRooms">0</div>
+						<div class="kpi__meta" id="kpiRoomTypes">—</div>
+					</div>
+					<div class="card kpi">
+						<div class="kpi__label">Available Today</div>
+						<div class="kpi__value" id="kpiAvailable">0</div>
+						<div class="kpi__meta" id="kpiOccupied">Occupied: 0</div>
+					</div>
+					<div class="card kpi">
+						<div class="kpi__label">Active Bookings</div>
+						<div class="kpi__value" id="kpiActiveBookings">0</div>
+						<div class="kpi__meta" id="kpiUpcoming">Upcoming check-ins: 0</div>
+					</div>
+					<div class="card kpi">
+						<div class="kpi__label">Guests</div>
+						<div class="kpi__value" id="kpiGuests">0</div>
+						<div class="kpi__meta" id="kpiRevenue">Est. Revenue (active): $0</div>
+					</div>
+				</div>
+
+				<div class="grid grid--2">
+					<div class="card">
+						<div class="card__header">
+							<div>
+								<h2 class="card__title">Today</h2>
+								<p class="card__subtitle">Quick view of check-ins / check-outs</p>
+							</div>
+						</div>
+						<div class="card__body">
+							<div class="empty" id="todayEmpty">No activity today.</div>
+							<div class="list" id="todayList" hidden></div>
+						</div>
+					</div>
+
+					<div class="card">
+						<div class="card__header">
+							<div>
+								<h2 class="card__title">Alerts</h2>
+								<p class="card__subtitle">Conflicts & data issues</p>
+							</div>
+						</div>
+						<div class="card__body">
+							<div class="empty" id="alertsEmpty">No alerts.</div>
+							<div class="list" id="alertsList" hidden></div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<section class="view" id="view-rooms" data-view="rooms" aria-label="Rooms">
+				<div class="pageHeader">
+					<div>
+						<h1 class="pageHeader__title">Rooms</h1>
+						<p class="pageHeader__subtitle">Create rooms and update their status.</p>
+					</div>
+					<div class="pageHeader__actions">
+						<select class="input" id="roomFilterStatus" aria-label="Filter rooms by status">
+							<option value="">All statuses</option>
+							<option value="available">Available</option>
+							<option value="occupied">Occupied</option>
+							<option value="maintenance">Maintenance</option>
+						</select>
+						<button class="btn" type="button" id="btnAddRoom">Add Room</button>
+					</div>
+				</div>
+
+				<div class="card">
+					<div class="tableWrap">
+						<table class="table" aria-label="Rooms table">
+							<thead>
+								<tr>
+									<th>Room</th>
+									<th>Type</th>
+									<th>Capacity</th>
+									<th>Price/Night</th>
+									<th>Status</th>
+									<th class="th-actions">Actions</th>
+								</tr>
+							</thead>
+							<tbody id="roomsTbody"></tbody>
+						</table>
+					</div>
+				</div>
+			</section>
+
+			<section class="view" id="view-guests" data-view="guests" aria-label="Guests">
+				<div class="pageHeader">
+					<div>
+						<h1 class="pageHeader__title">Guests</h1>
+						<p class="pageHeader__subtitle">Manage guest contact info.</p>
+					</div>
+					<div class="pageHeader__actions">
+						<input class="input" id="guestSearch" placeholder="Search name / phone / email" aria-label="Search guests" />
+						<button class="btn" type="button" id="btnAddGuest">Add Guest</button>
+					</div>
+				</div>
+
+				<div class="card">
+					<div class="tableWrap">
+						<table class="table" aria-label="Guests table">
+							<thead>
+								<tr>
+									<th>Name</th>
+									<th>Phone</th>
+									<th>Email</th>
+									<th class="th-actions">Actions</th>
+								</tr>
+							</thead>
+							<tbody id="guestsTbody"></tbody>
+						</table>
+					</div>
+				</div>
+			</section>
+
+			<section class="view" id="view-bookings" data-view="bookings" aria-label="Bookings">
+				<div class="pageHeader">
+					<div>
+						<h1 class="pageHeader__title">Bookings</h1>
+						<p class="pageHeader__subtitle">Create bookings, check-in/out, and prevent overlaps.</p>
+					</div>
+					<div class="pageHeader__actions">
+						<select class="input" id="bookingFilterStatus" aria-label="Filter bookings by status">
+							<option value="">All statuses</option>
+							<option value="reserved">Reserved</option>
+							<option value="checked-in">Checked-in</option>
+							<option value="checked-out">Checked-out</option>
+							<option value="cancelled">Cancelled</option>
+						</select>
+						<button class="btn" type="button" id="btnAddBooking">New Booking</button>
+					</div>
+				</div>
+
+				<div class="grid grid--2">
+					<div class="card">
+						<div class="card__header">
+							<div>
+								<h2 class="card__title">Booking List</h2>
+								<p class="card__subtitle">Actions depend on booking status.</p>
+							</div>
+						</div>
+						<div class="card__body">
+							<div class="tableWrap">
+								<table class="table" aria-label="Bookings table">
+									<thead>
+										<tr>
+											<th>Guest</th>
+											<th>Room</th>
+											<th>Dates</th>
+											<th>Status</th>
+											<th>Total</th>
+											<th class="th-actions">Actions</th>
+										</tr>
+									</thead>
+									<tbody id="bookingsTbody"></tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+
+					<div class="card">
+						<div class="card__header">
+							<div>
+								<h2 class="card__title">Quick Create</h2>
+								<p class="card__subtitle">Fast booking form.</p>
+							</div>
+						</div>
+						<div class="card__body">
+							<form id="quickBookingForm" class="form">
+								<label class="field">
+									<span class="field__label">Guest</span>
+									<select class="input" id="qbGuest" required></select>
+								</label>
+								<label class="field">
+									<span class="field__label">Room</span>
+									<select class="input" id="qbRoom" required></select>
+								</label>
+								<div class="grid grid--2">
+									<label class="field">
+										<span class="field__label">Check-in</span>
+										<input class="input" id="qbIn" type="date" required />
+									</label>
+									<label class="field">
+										<span class="field__label">Check-out</span>
+										<input class="input" id="qbOut" type="date" required />
+									</label>
+								</div>
+								<div class="form__row">
+									<button class="btn" type="submit">Create Booking</button>
+									<button class="btn btn--ghost" type="button" id="btnOpenFullBooking">Open Full Form</button>
+								</div>
+								<div class="hint" id="qbHint">Tip: bookings cannot overlap for the same room.</div>
+							</form>
+						</div>
+					</div>
+				</div>
+			</section>
+		</main>
+
+		<footer class="footer">
+			<div>Data is stored locally in your browser (localStorage).</div>
+			<div class="footer__right">
+				<a href="#" id="linkSeed" class="link">Add sample data</a>
+			</div>
+		</footer>
+
+		<dialog class="dialog" id="dlgRoom" aria-label="Room dialog">
+			<form method="dialog" class="dialog__panel" id="roomForm">
+				<div class="dialog__header">
+					<div>
+						<div class="dialog__title" id="roomDlgTitle">Add Room</div>
+						<div class="dialog__subtitle">Room numbers should be unique.</div>
+					</div>
+					<button class="iconBtn" value="cancel" aria-label="Close">✕</button>
+				</div>
+
+				<input type="hidden" id="roomId" />
+
+				<div class="grid grid--2">
+					<label class="field">
+						<span class="field__label">Room Number</span>
+						<input class="input" id="roomNumber" placeholder="e.g., 101" required />
+					</label>
+					<label class="field">
+						<span class="field__label">Type</span>
+						<select class="input" id="roomType" required>
+							<option value="standard">Standard</option>
+							<option value="deluxe">Deluxe</option>
+							<option value="suite">Suite</option>
+						</select>
+					</label>
+				</div>
+
+				<div class="grid grid--2">
+					<label class="field">
+						<span class="field__label">Capacity</span>
+						<input class="input" id="roomCapacity" type="number" min="1" max="12" value="2" required />
+					</label>
+					<label class="field">
+						<span class="field__label">Price / Night</span>
+						<input class="input" id="roomPrice" type="number" min="0" step="0.01" value="99" required />
+					</label>
+				</div>
+
+				<label class="field">
+					<span class="field__label">Status</span>
+					<select class="input" id="roomStatus" required>
+						<option value="available">Available</option>
+						<option value="occupied">Occupied</option>
+						<option value="maintenance">Maintenance</option>
+					</select>
+				</label>
+
+				<div class="dialog__actions">
+					<button class="btn btn--ghost" value="cancel" type="button" data-close-dialog>Cancel</button>
+					<button class="btn" value="default" type="submit">Save</button>
+				</div>
+			</form>
+		</dialog>
+
+		<dialog class="dialog" id="dlgGuest" aria-label="Guest dialog">
+			<form method="dialog" class="dialog__panel" id="guestForm">
+				<div class="dialog__header">
+					<div>
+						<div class="dialog__title" id="guestDlgTitle">Add Guest</div>
+						<div class="dialog__subtitle">Basic contact info for bookings.</div>
+					</div>
+					<button class="iconBtn" value="cancel" aria-label="Close">✕</button>
+				</div>
+
+				<input type="hidden" id="guestId" />
+
+				<label class="field">
+					<span class="field__label">Full Name</span>
+					<input class="input" id="guestName" placeholder="e.g., Alex Johnson" required />
+				</label>
+				<div class="grid grid--2">
+					<label class="field">
+						<span class="field__label">Phone</span>
+						<input class="input" id="guestPhone" placeholder="e.g., +1 555 123 456" />
+					</label>
+					<label class="field">
+						<span class="field__label">Email</span>
+						<input class="input" id="guestEmail" type="email" placeholder="e.g., alex@example.com" />
+					</label>
+				</div>
+
+				<div class="dialog__actions">
+					<button class="btn btn--ghost" value="cancel" type="button" data-close-dialog>Cancel</button>
+					<button class="btn" value="default" type="submit">Save</button>
+				</div>
+			</form>
+		</dialog>
+
+		<dialog class="dialog" id="dlgBooking" aria-label="Booking dialog">
+			<form method="dialog" class="dialog__panel" id="bookingForm">
+				<div class="dialog__header">
+					<div>
+						<div class="dialog__title" id="bookingDlgTitle">New Booking</div>
+						<div class="dialog__subtitle">Overlapping bookings are blocked.</div>
+					</div>
+					<button class="iconBtn" value="cancel" aria-label="Close">✕</button>
+				</div>
+
+				<input type="hidden" id="bookingId" />
+
+				<label class="field">
+					<span class="field__label">Guest</span>
+					<select class="input" id="bookingGuest" required></select>
+				</label>
+
+				<label class="field">
+					<span class="field__label">Room</span>
+					<select class="input" id="bookingRoom" required></select>
+				</label>
+
+				<div class="grid grid--2">
+					<label class="field">
+						<span class="field__label">Check-in</span>
+						<input class="input" id="bookingIn" type="date" required />
+					</label>
+					<label class="field">
+						<span class="field__label">Check-out</span>
+						<input class="input" id="bookingOut" type="date" required />
+					</label>
+				</div>
+
+				<label class="field">
+					<span class="field__label">Status</span>
+					<select class="input" id="bookingStatus" required>
+						<option value="reserved">Reserved</option>
+						<option value="checked-in">Checked-in</option>
+						<option value="checked-out">Checked-out</option>
+						<option value="cancelled">Cancelled</option>
+					</select>
+				</label>
+
+				<div class="hint" id="bookingCostHint">Total: —</div>
+				<div class="dialog__actions">
+					<button class="btn btn--ghost" value="cancel" type="button" data-close-dialog>Cancel</button>
+					<button class="btn" value="default" type="submit">Save</button>
+				</div>
+			</form>
+		</dialog>
+
+		<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true" hidden>
+			<div class="toast__msg" id="toastMsg"></div>
+		</div>
+
+		<script src="./app.js"></script>
+	</body>
+</html>
